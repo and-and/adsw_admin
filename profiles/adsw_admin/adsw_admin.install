@@ -1,0 +1,21 @@
+<?php
+/**
+ * @file
+ */
+
+/**
+ * Implements hook_install().
+ */
+function adsw_admin_install() {
+  variable_set('admin_theme', 'seven');
+  theme_enable(array('adsw_admin'));
+  variable_set('theme_default', 'adsw_admin');
+
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function adsw_admin_uninstall() {
+  // Empty.
+}

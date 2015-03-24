@@ -1,0 +1,126 @@
+<?php
+
+/**
+ * Implements hook_form_alter
+ */
+function adsw_user_form_alter(&$form, &$form_state, $form_id) {
+
+  if (in_array($form_id, array('user_login', 'user_register_form', 'user_pass'))) {
+    drupal_add_css(drupal_get_path('theme', 'adsw_admin') . '/login/css/bootstrap.min.css');
+    drupal_add_css(drupal_get_path('theme', 'adsw_admin') . '/login/css/forms.css');
+    drupal_add_css(drupal_get_path('theme', 'adsw_admin') . '/login/css/animate.min.css');
+    drupal_add_css(drupal_get_path('theme', 'adsw_admin') . '/login/css/font-awesome.min.css');
+    drupal_add_css(drupal_get_path('theme', 'adsw_admin') . '/login/css/preview.css');
+    drupal_add_css('http://fonts.googleapis.com/css?family=Roboto:400,300', 'external');
+
+    drupal_add_js(drupal_get_path('theme', 'adsw_admin') . '/login/js/placeholders.min.js');
+    drupal_add_js(drupal_get_path('theme', 'adsw_admin') . '/login/js/jquery.icheck.js');
+    drupal_add_js(drupal_get_path('theme', 'adsw_admin') . '/login/js/respond.min.js');
+    drupal_add_js(drupal_get_path('theme', 'adsw_admin') . '/login/js/modernizr.js');
+    drupal_add_js(drupal_get_path('theme', 'adsw_admin') . '/login/js/custom.js');
+  }
+  if ($form_id == 'user_login') {
+
+    $form['#prefix'] = '<div class="container eternity-form"><div class="login-form-section"><div class="login-content animated bounceIn">';
+    $form['#suffix'] = '</div><div class="login-form-links link1 animated fadeInLeftBig">
+                <h4 class="blue">Don\'t have an Account?</h4>
+                <span>No worry</span>
+                <a href="' . url('user/register') . '" class="blue">Click Here</a>
+                <span>to Register</span>
+            </div>
+            <div class="login-form-links link2 animated fadeInRightBig">
+                <h4 class="green">Forget your Password?</h4>
+                <span>Dont worry</span>
+                <a href="' . url('user/password') . '" class="green">Click Here</a>
+                <span>to Get New One</span>
+            </div></div></div>';
+
+    $form['pass']['#theme_wrappers'] = $form['name']['#theme_wrappers'] = array();
+
+    $form['pass']['#attributes']['class'] = $form['name']['#attributes']['class'] = array('form-control');
+    $form['name']['#attributes']['placeholder'] = t('Username');
+    $form['pass']['#attributes']['placeholder'] = t('Password');
+    $form['actions']['submit']['#attributes']['class'] = array('btn', 'btn-success', 'pull-right', 'green-btn');
+
+    $form['#theme'] = 'adsw_user_login_template';
+  }
+  if ($form_id == 'user_register_form') {
+
+    $form['#prefix'] = '<div class="container eternity-form"><div class="registration-form-section">';
+    $form['#suffix'] = '</div></div>';
+
+    $form['field_account_type']['und']['#empty_option'] = t('- Select account type -');
+    $form['field_account_type']['und']['#empty_value'] = t('_none');
+
+    $form['#theme'] = 'adsw_user_register_template';
+  }
+
+}
+
+/**
+ * Implements hook_theme
+ */
+function adsw_user_theme() {
+  return array(
+    'adsw_user_login_template' => array(
+      'render element' => 'form',
+      'template' => 'adsw-user-login-template',
+      'path' => drupal_get_path('module', 'adsw_user') . '/theme',
+    ),
+    'adsw_user_register_template' => array(
+      'render element' => 'form',
+      'template' => 'adsw-user-register-template',
+      'path' => drupal_get_path('module', 'adsw_user') . '/theme',
+    ),
+    'adsw_user_pass_template' => array(
+      'render element' => 'form',
+      'template' => 'adsw-user-pass-template',
+      'path' => drupal_get_path('module', 'adsw_user') . '/theme',
+    ),
+  );
+}
+
+/**
+ * Temlpate preprocess for adsw_user_register_template
+ */
+function template_preprocess_adsw_user_register_template(&$vars){
+  $form = &$vars['form'];
+
+  $form['account']['name']['#theme_wrappers'] = array();
+  $form['account']['name']['#attributes']['class'] = array('form-control');
+  $form['account']['name']['#attributes']['placeholder'] = t('Username');
+//  $form['account']['name']['#attributes']['required'] = 'required';
+
+  $form['account']['pass']['pass1']['#attributes']['placeholder'] = t('Password');
+  $form['account']['pass']['pass2']['#attributes']['placeholder'] = t('Confirm password');
+  $form['account']['pass']['pass1']['#attributes']['class'] =
+  $form['account']['pass']['pass2']['#attributes']['class'] = array('form-control');
+  $form['account']['pass']['pass1']['#theme_wrappers'] =
+  $form['account']['pass']['pass2']['#theme_wrappers'] = array();
+
+  $form['account']['mail']['#theme_wrappers'] = array();
+  $form['account']['mail']['#attributes']['class'] = array('form-control');
+  $form['account']['mail']['#attributes']['placeholder'] = t('Email');
+
+  $form['field_first_name']['und'][0]['value']['#theme_wrappers'] = array();
+  $form['field_first_name']['und'][0]['value']['#attributes']['class'] = array('form-control');
+  $form['field_first_name']['und'][0]['value']['#attributes']['placeholder'] = t('First name');
+
+  $form['field_last_name']['und'][0]['value']['#theme_wrappers'] = array();
+  $form['field_last_name']['und'][0]['value']['#attributes']['class'] = array('form-control');
+  $form['field_last_name']['und'][0]['value']['#attributes']['placeholder'] = t('Last name');
+
+  $form['field_company_name']['und'][0]['value']['#theme_wrappers'] = array();
+  $form['field_company_name']['und'][0]['value']['#attributes']['class'] = array('form-control');
+  $form['field_company_name']['und'][0]['value']['#attributes']['placeholder'] = t('Company name');
+
+  $form['field_skype']['und'][0]['value']['#theme_wrappers'] = array();
+  $form['field_skype']['und'][0]['value']['#attributes']['class'] = array('form-control');
+  $form['field_skype']['und'][0]['value']['#attributes']['placeholder'] = t('Skype');
+
+  $form['field_account_type']['und']['#theme_wrappers'] = array();
+  $form['field_account_type']['und']['#attributes']['class'] = array('form-control');
+
+  $form['actions']['submit']['#attributes']['class'] = array('btn', 'btn-success', 'pull-right', 'green-btn');
+
+}

@@ -1,0 +1,10 @@
+name = Adsw User
+core = 7.x
+package = AdSwallow
+version = 7.x-1.00
+project = adsw_user
+dependencies[] = features
+dependencies[] = text
+features[features_api][] = api:2
+features[field_base][] = field_organisation
+features[field_instance][] = user-user-field_organisation
