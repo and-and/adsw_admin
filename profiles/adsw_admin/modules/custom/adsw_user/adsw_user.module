@@ -27,13 +27,14 @@ function adsw_user_form_alter(&$form, &$form_state, $form_id) {
                 <span>No worry</span>
                 <a href="' . url('user/register') . '" class="blue">Click Here</a>
                 <span>to Register</span>
-            </div>
-            <div class="login-form-links link2 animated fadeInRightBig">
-                <h4 class="green">Forget your Password?</h4>
-                <span>Dont worry</span>
-                <a href="' . url('user/password') . '" class="green">Click Here</a>
-                <span>to Get New One</span>
-            </div></div></div>';
+            </div>';
+//            <div class="login-form-links link2 animated fadeInRightBig">
+//                <h4 class="green">Forget your Password?</h4>
+//                <span>Dont worry</span>
+//                <a href="' . url('user/password') . '" class="green">Click Here</a>
+//                <span>to Get New One</span>
+//            </div>
+    $form['#suffix'] .=         '</div></div>';
 
     $form['pass']['#theme_wrappers'] = $form['name']['#theme_wrappers'] = array();
 
@@ -123,4 +124,24 @@ function template_preprocess_adsw_user_register_template(&$vars){
 
   $form['actions']['submit']['#attributes']['class'] = array('btn', 'btn-success', 'pull-right', 'green-btn');
 
+}
+
+/**
+ * Implements hook_init
+ */
+function adsw_user_init() {
+  global $user;
+  if ($user->uid == 1) {
+    return;
+  }
+  if (!user_is_logged_in() && arg(0) != 'user') {
+    drupal_goto('user');
+    return;
+  }
+  if (user_is_logged_in()) {
+    if ((arg(0) == 'user' && arg(1) == 'logout') || arg(0) == 'dashboard') {
+      return;
+    }
+    drupal_goto('dashboard');
+  }
 }
