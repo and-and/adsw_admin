@@ -85,7 +85,7 @@ $block = new stdClass();
 
         <div class="wrapper wrapper-content animated fadeInRight">
             <div class="row">
-<h4 class="text-center">You have not statistics yet.</h4>
+<h4 class="text-center">You have no statistics yet.</h4>
             </div>
 
         </div>
