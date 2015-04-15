@@ -1,0 +1,128 @@
+<?php
+/**
+ * @file
+ * Code for the Adsw stat feature.
+ */
+
+include_once 'adsw_stat.features.inc';
+
+/**
+ * Implementation of hook_ctools_plugin_directory().
+ */
+function adsw_stat_ctools_plugin_directory($owner, $plugin_type) {
+  if ($owner == 'ctools') {
+    return 'plugins/' . $plugin_type;
+  }
+}
+
+function adsw_insert_from_csv($path, $uid, $zone_id, $banner_id, $date) {
+  $replacements = array(
+    'Democratic Republic of the Congo' => 'Congo',
+    'Lao People\'s Democratic Republic' => 'Laos',
+    'Viet Nam' => 'Vietnam',
+    'Republic of Korea' => 'Korea',
+  );
+//  $path = 'sites/default/files/country20150409141205.csv';
+  $csv = array_map('str_getcsv', file($path));
+  $countries = country_get_list();
+  foreach($csv as $line) {
+    if ($line[0] == 'country') {
+      continue;
+    }
+    $country = 'undef';
+    if ($country != 'undefined') {
+      foreach ($countries as $val => $c) {
+        $search = isset($replacements[$line[0]]) ? $replacements[$line[0]] : $line[0];
+        if (strpos($search, $c) !== FALSE || strpos($c, $search) !== FALSE) {
+          $country = $val;
+        }
+      }
+    }
+//    db_query("INSERT INTO `adsw_admin`.`ad_stat`
+//              (`user_id`, `date`, `group_id`, `banner_id`, `country`, `clicks`, `impress`, `ctr`, `cpm`, `earning`)
+//              VALUES ('1','" . date('Y-m-d', $date) . "', '1', '1', '" . $country . "', '" . $line[1] . "', '" . $line[2] . "', '" . $line[3] . "', '" . $line[4] . "', '" . $line[5] . "')");
+    $query = db_insert('ad_stat')
+      ->fields(array(
+        'user_id' => $uid,
+        'date' => date('Y-m-d', $date),
+        'group_id'=> $zone_id,
+        'banner_id'=> $banner_id,
+        'country' => $country,
+        'clicks' => $line[1],
+        'impress' => $line[2],
+        'ctr' => $line[3],
+        'cpm' => $line[4],
+        'earning' => $line[5]))
+      ->execute();
+  }
+}
+
+function adsw_stat_select_banner_form($form, &$form_state) {
+  $form['#attached']['library'][] = array('system', 'ui.datepicker');
+  $form['#attached']['js'][] = drupal_get_path('module', 'adsw_stat') . '/js/adsw_stat.js';
+
+  $account_id = arg(2);
+  $zone_id = arg(3);
+  $account_wrapper = entity_metadata_wrapper('user', $account_id);
+  $zone_wrapper = entity_metadata_wrapper('field_collection_item', $zone_id);
+  $zone_name = $zone_wrapper->field_zone_name->value();
+  $banners_wrapper = $zone_wrapper->field_zone_banners;
+  $banners = array();
+  foreach ($banners_wrapper as $banner_wrap) {
+    $banner_id = $banner_wrap->item_id->raw();
+    $banner_name = $banner_wrap->field_banner_name->value();
+    $banners[$banner_id] = $banner_name;
+  }
+  if (empty($banners)) {
+    $form['title'] = array('#markup' => '<h1>Zone has not banners</h1>');
+    return $form;
+  }
+  $account_name = $account_wrapper->name->raw();
+  $form['title'] = array(
+    '#markup' => '<h1>Upload statistic for user "' . $account_name . '" and zone "' . $zone_name . '"</h1>',
+  );
+  $form['banner'] = array(
+    '#title' => 'Select banner',
+    '#type' => 'select',
+    '#options' => $banners,
+    '#required' => TRUE,
+  );
+  $form['date'] = array(
+    '#title' => 'Select date',
+    '#type' => 'textfield',
+    '#required' => TRUE,
+  );
+  $form['csv'] = array(
+    '#title' => 'Statistics CSV',
+    '#type' => 'file',
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Upload statistic',
+    '#submit' => array('adsw_stat_select_banner_form_upload_submit'),
+  );
+  $form['remove'] = array(
+    '#type' => 'submit',
+    '#value' => 'Remvoe statistic for this day',
+    '#submit' => array('adsw_stat_select_banner_form_remove_submit'),
+  );
+
+  return $form;
+}
+
+function adsw_stat_select_banner_form_upload_submit($form, &$form_state) {
+  $file = file_save_upload('csv', array('file_validate_extensions' => array('csv')), 'temporary://');
+  $path = drupal_realpath($file->uri);
+  $uid = arg(2);
+  $zone_id = arg(3);
+  $banner_id = $form_state['values']['banner'];
+  $date = strtotime($form_state['values']['date']);
+  adsw_insert_from_csv($path, $uid, $zone_id, $banner_id, $date);
+
+  drupal_set_message('Statistics has been uploaded');
+  drupal_goto('admin/stats');
+}
+
+function adsw_stat_select_banner_form_remove_submit($form, &$form_state) {
+
+}

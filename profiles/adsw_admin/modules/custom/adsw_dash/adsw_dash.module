@@ -35,34 +35,7 @@ function adsw_dash_theme() {
   );
 }
 
-function adsw_insert_from_csv ($path, $date = REQUEST_TIME) {
-  $replacements = array(
-    'Democratic Republic of the Congo' => 'Congo',
-    'Lao People\'s Democratic Republic' => 'Laos',
-    'Viet Nam' => 'Vietnam',
-    'Republic of Korea' => 'Korea',
-  );
-//  $path = 'sites/default/files/country20150409141205.csv';
-  $csv = array_map('str_getcsv', file($path));
-  $countries = country_get_list();
-  foreach($csv as $line) {
-    if ($line[0] == 'country') {
-      continue;
-    }
-    $country = 'undef';
-    if ($country != 'undefined') {
-      foreach ($countries as $val => $c) {
-        $search = isset($replacements[$line[0]]) ? $replacements[$line[0]] : $line[0];
-        if (strpos($search, $c) !== FALSE || strpos($c, $search) !== FALSE) {
-          $country = $val;
-        }
-      }
-    }
-    db_query("INSERT INTO `adsw_admin`.`ad_stat`
-              (`user_id`, `date`, `group_id`, `banner_id`, `country`, `clicks`, `impress`, `ctr`, `cpm`, `earning`)
-              VALUES ('1','" . date('Y-m-d', $date) . "', '1', '1', '" . $country . "', '" . $line[1] . "', '" . $line[2] . "', '" . $line[3] . "', '" . $line[4] . "', '" . $line[5] . "')");
-  }
-}
+
 
 function adsw_dash_get_today_impress($date = REQUEST_TIME) {
   $query = db_query("SELECT sum(`impress`) as sum FROM `ad_stat` WHERE `date`='" . date('Y-m-d', $date) . "'");
@@ -83,6 +56,7 @@ function adsw_dash_get_today_revenue($date = REQUEST_TIME) {
 }
 
 function adsw_dash_get_by_days($from = NULL, $to = NULL) {
+  global $user;
   if (is_null($from)) {
     $from = date('Y-m-d', strtotime("-1 week +1 day"));
   }
@@ -101,6 +75,7 @@ function adsw_dash_get_by_days($from = NULL, $to = NULL) {
   if (isset($_GET['country']) && $_GET['country'] != 'all') {
     $query->condition('stat.country', $_GET['country']);
   }
+  $query->condition('user_id', $user->uid);
   $query->groupBy('date');
   $query->orderBy('date', 'ASC');
   $res = $query->execute()->fetchAll();
@@ -128,6 +103,7 @@ function adsw_dash_get_by_days($from = NULL, $to = NULL) {
 }
 
 function adsw_dash_get_by_countries($from = NULL, $to = NULL) {
+  global $user;
 
   if (is_null($from)) {
     $from = date('Y-m-d', strtotime("-1 week +1 day"));
@@ -150,6 +126,7 @@ function adsw_dash_get_by_countries($from = NULL, $to = NULL) {
   if (isset($_GET['country']) && $_GET['country'] != 'all') {
     $query->condition('stat.country', $_GET['country']);
   }
+  $query->condition('user_id', $user->uid);
   $query->groupBy('country');
   $res = $query->execute()->fetchAll();
 
@@ -163,25 +140,46 @@ function adsw_dash_get_by_countries($from = NULL, $to = NULL) {
 }
 
 function adsw_dash_get_month_impress($date = REQUEST_TIME) {
+  global $user;
+
   $first_day = date('Y-m-01', $date);
   $last_day = date('Y-m-t', $date);
-  $query = db_query("SELECT sum(`impress`) as sum FROM `ad_stat` WHERE `date` BETWEEN '" . $first_day  . "' AND '" .  $last_day . "'");
-  $res = $query->fetchAssoc();
+
+  $query = db_select('ad_stat', 'stat');
+  $query->addExpression('sum(impress)', 'sum');
+  $query->condition('date', array($first_day, $last_day), 'BETWEEN');
+  $query->condition('user_id', $user->uid);
+  $res = $query->execute()->fetchAssoc();
+
   return $res['sum'];
 }
 
 function adsw_dash_get_month_clicks($date = REQUEST_TIME) {
+  global $user;
+
   $first_day = date('Y-m-01', $date);
   $last_day = date('Y-m-t', $date);
-  $query = db_query("SELECT sum(`clicks`) as sum FROM `ad_stat` WHERE `date` BETWEEN '" . $first_day  . "' AND '" .  $last_day . "'");
-  $res = $query->fetchAssoc();
+
+  $query = db_select('ad_stat', 'stat');
+  $query->addExpression('sum(clicks)', 'sum');
+  $query->condition('date', array($first_day, $last_day), 'BETWEEN');
+  $query->condition('user_id', $user->uid);
+  $res = $query->execute()->fetchAssoc();
+
   return $res['sum'];
 }
 
 function adsw_dash_get_month_revenue($date = REQUEST_TIME) {
+  global $user;
+
   $first_day = date('Y-m-01', $date);
   $last_day = date('Y-m-t', $date);
-  $query = db_query("SELECT sum(`earning`) as sum FROM `ad_stat` WHERE `date` BETWEEN '" . $first_day  . "' AND '" .  $last_day . "'");
-  $res = $query->fetchAssoc();
+
+  $query = db_select('ad_stat', 'stat');
+  $query->addExpression('sum(earning)', 'sum');
+  $query->condition('date', array($first_day, $last_day), 'BETWEEN');
+  $query->condition('user_id', $user->uid);
+  $res = $query->execute()->fetchAssoc();
+
   return $res['sum'];
 }
