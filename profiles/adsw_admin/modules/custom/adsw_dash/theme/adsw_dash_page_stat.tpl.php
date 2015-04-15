@@ -91,8 +91,8 @@
                   <td><?php print $val->click; ?></td>
                   <td><?php print $val->impress; ?></td>
                   <td><?php print number_format($val->ctr, 2, '.', ''); ?>%</td>
-                  <td><?php print number_format($val->cpm, 3, '.', ''); ?>€</td>
-                  <td><?php print number_format($val->earning, 2, '.', ''); ?>€</td>
+                  <td>$<?php print number_format($val->cpm, 3, '.', ''); ?></td>
+                  <td>$<?php print number_format($val->earning, 2, '.', ''); ?></td>
                 </tr>
               <?php endforeach; ?>
               </tbody>
@@ -115,8 +115,8 @@
                   <td><?php print $val->click; ?></td>
                   <td><?php print $val->impress; ?></td>
                   <td><?php print number_format($val->ctr, 2, '.', ''); ?>%</td>
-                  <td><?php print number_format($val->cpm, 3, '.', ''); ?>€</td>
-                  <td><?php print number_format($val->earning, 2, '.', ''); ?>€</td>
+                  <td>$<?php print number_format($val->cpm, 3, '.', ''); ?></td>
+                  <td>$<?php print number_format($val->earning, 2, '.', ''); ?></td>
                 </tr>
               <?php endforeach; ?>
               </tbody>
