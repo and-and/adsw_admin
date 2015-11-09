@@ -1,5 +1,7 @@
 <?php
 
+define('SID_START_NUMBER', 43759);
+
 /**
  * Implements hook_form_alter
  */
@@ -143,5 +145,19 @@ function adsw_user_init() {
       return;
     }
     drupal_goto('dashboard');
+  }
+}
+
+/**
+ * Implements hook_user_presave
+ */
+function adsw_user_user_presave(&$edit, $account, $category) {
+
+  if ($account->is_new) {
+    $query = db_select('users', 'u');
+    $query->addExpression('MAX(uid)', 'max');
+    $max = $query->execute()->fetchField();
+
+    $edit['field_sid']['und'][0]['value'] = $max + SID_START_NUMBER;
   }
 }

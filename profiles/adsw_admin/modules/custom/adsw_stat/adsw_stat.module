@@ -126,3 +126,56 @@ function adsw_stat_select_banner_form_upload_submit($form, &$form_state) {
 function adsw_stat_select_banner_form_remove_submit($form, &$form_state) {
 
 }
+
+function adsw_stat_get_coockie($conf) {
+  //dsm(file_get_contents('http://partner.monetizus.com/feed/?key=5a100576023b6556f3666f8eb6d5495bbc37094a&from=2015-11-01&to=2015-11-05', TRUE));
+  $post = drupal_http_build_query();
+  $loginUrl = $conf['url'];
+
+// init curl
+  $ch = curl_init();
+// set the url to work with
+  curl_setopt( $ch, CURLOPT_URL, $loginUrl );
+// enable http post
+  curl_setopt( $ch, CURLOPT_POST, 1 );
+// get headers too with this line
+  curl_setopt($ch, CURLOPT_HEADER, 1);
+// set the post parameters
+  curl_setopt( $ch, CURLOPT_POSTFIELDS, 'email =' . $username . '& pass =' . $password );
+
+  curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
+// execute the request
+  $result = curl_exec($ch);
+// get cookie
+// multi-cookie variant contributed by @Combuster in comments
+  preg_match_all('/^Set-Cookie:\s*([^;]*)/mi', $result, $matches);
+  $cookies = array();
+  foreach($matches[1] as $item) {
+    parse_str($item, $cookie);
+    $cookies = array_merge($cookies, $cookie);
+  }
+  return $cookies;
+}
+
+function adsw_stat_get_report_json() {
+  $c = curl_init();
+  curl_setopt($c, CURLOPT_URL, 'http://partner.monetizus.com/feed/?key=5a100576023b6556f3666f8eb6d5495bbc37094a&from=2015-11-01&to=2015-11-05');
+  curl_setopt($c, CURLOPT_VERBOSE, 1);
+  curl_setopt($c, CURLOPT_HEADER, 1);
+  curl_setopt($c, CURLOPT_COOKIE, 'PHPSESSID=u9kl7oere98ah26siv4r3jqgk4; pid=50402x4mik7P1Kro7CgVsp2nHtg4GI3heqi3ReW1XMARQAJZo');
+  curl_setopt($c, CURLOPT_RETURNTRANSFER, 1);
+  $page = curl_exec($c);
+  dsm($page);
+}
+
+function adsw_stat_get_report($conf) {
+  $cookie = adsw_stat_get_coockie($conf);
+}
+
+function adsw_stat_update_stats() {
+  $confs = variable_get('adsw_accs', array());
+  foreach ($confs as $conf) {
+    dsm(adsw_stat_get_report($conf));
+  }
+}
+
